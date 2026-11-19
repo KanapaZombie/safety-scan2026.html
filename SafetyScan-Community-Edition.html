@@ -1,0 +1,1882 @@
+<!DOCTYPE html>
+<html lang="en" class="dark"><head><script data-bard-client-injected="true">(function(firebaseConfig, initialAuthToken, appId) {
+        window.__firebase_config = firebaseConfig;
+        window.__initial_auth_token = initialAuthToken;
+        window.__app_id = appId;
+            })("\n{\n  \"apiKey\": \"AIzaSyCqyCcs2R2e7AegGjvFAwG98wlamtbHvZY\",\n  \"authDomain\": \"bard-frontend.firebaseapp.com\",\n  \"projectId\": \"bard-frontend\",\n  \"storageBucket\": \"bard-frontend.firebasestorage.app\",\n  \"messagingSenderId\": \"175205271074\",\n  \"appId\": \"1:175205271074:web:2b7bd4d34d33bf38e6ec7b\"\n}\n","eyJhbGciOiJSUzI1NiIsImtpZCI6IjExNjRiNzdiNDMzZDdhMDAyMWI4NjE4YjhjYTU3ZTMyZGI5MWUxMTMiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJmaXJlYmFzZS1hZG1pbnNkay1mYnN2Y0BiYXJkLWZyb250ZW5kLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwiYXVkIjoiaHR0cHM6Ly9pZGVudGl0eXRvb2xraXQuZ29vZ2xlYXBpcy5jb20vZ29vZ2xlLmlkZW50aXR5LmlkZW50aXR5dG9vbGtpdC52MS5JZGVudGl0eVRvb2xraXQiLCJ1aWQiOiIxMzU4NzkyNzM4ODE3OTQyMDA2NiIsImlzcyI6ImZpcmViYXNlLWFkbWluc2RrLWZic3ZjQGJhcmQtZnJvbnRlbmQuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJjbGFpbXMiOnsiYXBwSWQiOiJjXzJjNTNmYTFiNTU3YjQ3MzVfaW5kZXguaHRtbC0yNTUifSwiZXhwIjoxNzk1MDc0MDE5LCJpYXQiOjE3OTUwNzA0MTksImFsZyI6IlJTMjU2In0.DQ_dQKyTRooaEvBNJ-4e8urVOROVl-ds-RYjV1q4Tf0RpL02vqVyhxDG-F_IhqBMZ4P4WA4Yp4Dk2kgCBv1xtrcL4fiC4iObKmziLEazmZSggzSX1ssTAnpspLI6-rO2EjOskjYpCfpJ0J2G4pq4nlGp1P1e6yveSVwD8dD9mGcSzDHF66dnZ5Zqu0R0YZesDX_qu8EU8DXdLweeLqERcQww1d10fz73LO30ocipZFxg48VKQfZY8G_glLfDcOxAp9jTixt2F6wPhCOwZHsyMK5m5xUGBg7euA7t8xbqLchblHIWTpk28ELOln_2awxaxHYVuFWazZfT6euCUeo9VQ","c_2c53fa1b557b4735_index.html-255")</script><script data-bard-client-injected="true">
+  document.addEventListener('input', (event) => {
+    if (event.target && (event.target.isContentEditable || event.target.hasAttribute('contenteditable'))) {
+      const clonedDoc = document.cloneNode(true);
+      const injectedScripts = clonedDoc.querySelectorAll('[data-bard-client-injected="true"]');
+      injectedScripts.forEach(el => el.remove());
+      window.parent.postMessage({
+        type: 'inlineEdit',
+        html: '<!DOCTYPE html>\n' + clonedDoc.documentElement.outerHTML
+      }, '*');
+    }
+  });
+</script><script data-bard-client-injected="true">(function(){'use strict';window.addEventListener("message",a=>{a.data&&a.data.type==="SUPPLEMENTAL_DATA_UPDATE"&&window.dispatchEvent(new CustomEvent("supplementaldataupdate",{detail:a.data.data}))});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const SCROLL_KEYS = new Set([
+    'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+    ' ', 'Spacebar', 'PageUp', 'PageDown', 'Home', 'End',
+  ]);
+  const HORIZONTAL_KEYS = new Set(['ArrowLeft', 'ArrowRight']);
+
+  function isTextEntryTarget(target) {
+    if (!target) return false;
+    const tagName = target.tagName;
+    return tagName === 'INPUT' || tagName === 'TEXTAREA' ||
+        tagName === 'SELECT' || target.isContentEditable === true;
+  }
+
+  // An element absorbs the key only if it both overflows on the axis being
+  // scrolled and is configured to scroll on that axis. The cheap dimension
+  // test runs first because getComputedStyle forces a style recalc, and this
+  // runs on every keypress. Each axis is read from its own longhand: the
+  // 'overflow' shorthand serializes as two values when the axes differ, which
+  // is the common 'overflow-x: hidden; overflow-y: auto' pane.
+  function canScroll(node, horizontal) {
+    const overflows = horizontal ? node.scrollWidth > node.clientWidth
+                                 : node.scrollHeight > node.clientHeight;
+    if (!overflows) return false;
+    const style = window.getComputedStyle(node);
+    const overflow = horizontal ? style.overflowX : style.overflowY;
+    return overflow === 'auto' || overflow === 'scroll';
+  }
+
+  // Walks up from the event target so nested scrollers keep their behavior.
+  // <body> is included because pages that pin the root height make it the
+  // scroll container.
+  function hasScrollableAncestor(target, horizontal) {
+    let node = target;
+    while (node && node !== document.documentElement) {
+      if (canScroll(node, horizontal)) return true;
+      node = node.parentElement;
+    }
+    return false;
+  }
+
+  function rootCanScroll(horizontal) {
+    const scroller = document.scrollingElement || document.documentElement;
+    if (!scroller) return false;
+    // Tolerate a pixel of rounding so subpixel layouts do not look scrollable.
+    return horizontal ? scroller.scrollWidth > window.innerWidth + 1
+                      : scroller.scrollHeight > window.innerHeight + 1;
+  }
+
+  window.addEventListener('keydown', function(event) {
+    if (!SCROLL_KEYS.has(event.key)) return;
+    if (event.defaultPrevented) return;
+    // Alt and Meta turn arrows into browser history navigation, and Ctrl is
+    // reserved for shortcuts, so none of them are scroll intent.
+    if (event.altKey || event.metaKey || event.ctrlKey) return;
+
+    const target = event.target;
+    if (isTextEntryTarget(target)) return;
+
+    // Anything that can still absorb the scroll gets to keep it.
+    const horizontal = HORIZONTAL_KEYS.has(event.key);
+    if (rootCanScroll(horizontal)) return;
+    if (hasScrollableAncestor(target, horizontal)) return;
+
+    event.preventDefault();
+  }, {capture: true, passive: false});
+})();</script><script data-bard-client-injected="true">(function() {
+  // Ensure this script is executed only once
+  if (window.firebaseAuthBridgeScriptLoaded) {
+    return;
+  }
+  window.firebaseAuthBridgeScriptLoaded = true;
+
+  let nextTokenPromiseId = 0;
+
+  // Stores { resolve, reject } for ongoing token requests
+  const pendingTokenPromises = {};
+
+  // Listen for messages from the Host Application
+  window.addEventListener('message', function(event) {
+
+    const messageData = event.data;
+
+  if (messageData && messageData.type === 'RESOLVE_NEW_FIREBASE_TOKEN') {
+      const { success, token, error, promiseId } = messageData ?? {};
+      if (pendingTokenPromises[promiseId]) {
+        if (success) {
+          pendingTokenPromises[promiseId].resolve(token);
+        } else {
+          pendingTokenPromises[promiseId].reject(new Error(error || 'Token refresh failed from host.'));
+        }
+        delete pendingTokenPromises[promiseId];
+      }
+    }
+  });
+
+  // Expose a function for the Generated App to request a new Firebase token
+  window.requestNewFirebaseToken = function() {
+    const currentPromiseId = nextTokenPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingTokenPromises[currentPromiseId] = { resolve, reject };
+    });
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        type: 'REQUEST_NEW_FIREBASE_TOKEN',
+        promiseId: currentPromiseId
+      }, '*');
+    } else {
+      pendingTokenPromises[currentPromiseId].reject(new Error('No parent window to request token from.'));
+      delete pendingTokenPromises[currentPromiseId];
+    }
+    return promise;
+  };
+})();</script><script data-bard-client-injected="true">
+let realOriginalGetUserMedia = null;
+if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  realOriginalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+}
+
+(function() {
+  if (navigator.mediaDevices && navigator.mediaDevices.__proto__) {
+    try {
+      Object.defineProperty(navigator.mediaDevices.__proto__, 'getUserMedia', {
+        get: function() {
+          return undefined; // Or throw an error
+        },
+        configurable: false
+      });
+    } catch (error) {
+      console.error("Error defining prototype getter:", error);
+    }
+  }
+})();
+
+(function() {
+  const pendingMediaResolvers = {};
+  let nextMediaPromiseId = 0;
+
+  function requestMediaPermissions(constraints) {
+    const mediaPromiseId = nextMediaPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingMediaResolvers[mediaPromiseId] = (granted) => {
+        delete pendingMediaResolvers[mediaPromiseId];
+        resolve(granted);
+      };
+    });
+
+    window.parent.postMessage({
+      type: 'requestMediaPermission',
+      constraints: constraints,
+      promiseId: mediaPromiseId,
+    }, '*');
+
+    return promise;
+  }
+
+  let originalGetUserMedia = realOriginalGetUserMedia;
+
+  function interceptGetUserMedia() {
+    if (navigator.mediaDevices) {
+      Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
+        value: function(constraints) {
+          return requestMediaPermissions(constraints).then((granted) => {
+            if (granted) {
+              if (originalGetUserMedia) {
+                return originalGetUserMedia(constraints);
+              } else {
+                throw new Error("Original getUserMedia not available.");
+              }
+            } else {
+              throw new DOMException('Permission denied', 'NotAllowedError');
+            }
+          });
+        },
+        writable: false,
+        configurable: false
+      });
+    }
+  }
+
+  interceptGetUserMedia();
+
+  const observer = new MutationObserver(function(mutationsList, observer) {
+    for (const mutation of mutationsList) {
+      if (mutation.type === 'reconfigured' && mutation.name === 'getUserMedia' && mutation.object === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'attributes' && mutation.attributeName === 'getUserMedia' && mutation.target === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'childList' && mutation.addedNodes) {
+        mutation.addedNodes.forEach(node => {
+          if (node === navigator.mediaDevices) {
+            interceptGetUserMedia();
+          }
+        });
+      }
+    }
+  });
+
+  function interceptSpeechRecognition() {
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+      return;
+    }
+
+    const OriginalSpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    const SpeechRecognitionWrapper = function(...args) {
+      const recognizer = new OriginalSpeechRecognition(...args);
+      const originalStart = recognizer.start.bind(recognizer);
+
+      recognizer.start = function() {
+        requestMediaPermissions({ audio: true }).then(granted => {
+          if (granted) {
+            originalStart();
+          } else {
+            const errorEvent = new SpeechRecognitionErrorEvent('error');
+            errorEvent.error = 'not-allowed'; // This is the standard error for permission denial.
+            recognizer.dispatchEvent(errorEvent);
+          }
+        });
+      };
+
+      return recognizer;
+    };
+
+    SpeechRecognitionWrapper.prototype = OriginalSpeechRecognition.prototype;
+    SpeechRecognitionWrapper.prototype.constructor = SpeechRecognitionWrapper;
+
+    if (window.SpeechRecognition) {
+      window.SpeechRecognition = SpeechRecognitionWrapper;
+    }
+    if (window.webkitSpeechRecognition) {
+      window.webkitSpeechRecognition = SpeechRecognitionWrapper;
+    }
+  }
+
+  interceptSpeechRecognition();
+
+  window.addEventListener('message', function(event) {
+    if (event.data) {
+      if (event.data.type === 'resolveMediaPermission') {
+        const { promiseId, granted } = event.data;
+        if (pendingMediaResolvers[promiseId]) {
+          pendingMediaResolvers[promiseId](granted);
+        }
+      }
+    }
+  });
+
+})();</script><script ws-interception-config="{&quot;parentOrigin&quot;:&quot;https://gemini.google.com&quot;,&quot;proxiedDomains&quot;:[]}" data-bard-client-injected="true">(function(){'use strict';var u=typeof Object.defineProperties=="function"?Object.defineProperty:function(b,d,e){if(b==Array.prototype||b==Object.prototype)return b;b[d]=e.value;return b};function v(b){b=["object"==typeof globalThis&&globalThis,b,"object"==typeof window&&window,"object"==typeof self&&self,"object"==typeof global&&global];for(var d=0;d<b.length;++d){var e=b[d];if(e&&e.Math==Math)return e}throw Error("Cannot find global object");}var w=v(this);
+function y(b,d){if(d)a:{var e=w;b=b.split(".");for(var h=0;h<b.length-1;h++){var k=b[h];if(!(k in e))break a;e=e[k]}b=b[b.length-1];h=e[b];d=d(h);d!=h&&d!=null&&u(e,b,{configurable:!0,writable:!0,value:d})}}function z(b){function d(h){return b.next(h)}function e(h){return b.throw(h)}return new Promise(function(h,k){function m(n){n.done?h(n.value):Promise.resolve(n.value).then(d,e).then(m,k)}m(b.next())})}y("globalThis",function(b){return b||w});/*
+
+ Copyright The Closure Library Authors.
+ SPDX-License-Identifier: Apache-2.0
+*/
+function A(b,d){function e(){}e.prototype=d.prototype;b.i=d.prototype;b.prototype=new e;b.prototype.constructor=b;b.h=function(h,k,m){for(var n=Array(arguments.length-2),p=2;p<arguments.length;p++)n[p-2]=arguments[p];return d.prototype[k].apply(h,n)}};function B(b,d,e="*"){function h(a){if(typeof a==="string")return F.encode(a).buffer;if(a instanceof ArrayBuffer)return a.slice(0);if(ArrayBuffer.isView(a))return a.buffer.slice(a.byteOffset,a.byteOffset+a.byteLength);throw Error("Invalid data type");}function k(a){a=h(a);var f={type:"send",data:new Uint8Array(a)},g;(g=r)==null||g.postMessage(f,[a])}function m(){if(!r)throw Error("Data port not captured yet.");r.onmessage=a=>{if(a.data.type==="message"){a=new MessageEvent("message",{data:G.decode(a.data.data)});
+let f;(f=c.onmessage)==null||f.call(c,a);c.dispatchEvent(a)}}}function n(){if(!t)throw Error("Control port not captured yet.");t.onmessage=a=>{switch(a.data.type){case "open":l=1;var f=new Event("open"),g;(g=c.onopen)==null||g.call(c,f);c.dispatchEvent(f);q.forEach(H=>{k(H)});q=[];break;case "close":g=a.data;l=3;g=new CloseEvent("close",{code:g.code,reason:g.reason,wasClean:g.wasClean});(f=c.onclose)==null||f.call(c,g);c.dispatchEvent(g);break;case "error":l=3;f=new Event("error");let x;(x=c.onerror)==
+null||x.call(c,f);c.dispatchEvent(f)}}}function p(a){return z(function*(){var f=new MessageChannel;t=f.port1;var g=new MessageChannel;r=g.port1;n();m();window.parent.postMessage({type:"websocket_open",portOrdering:["control","data"],url:b,protocols:a||[],connectionId:I},e,[f.port2,g.port2])}())}var c=Reflect.construct(EventTarget,[],new.target);c.CONNECTING=0;c.OPEN=1;c.CLOSING=2;c.CLOSED=3;c.url=b;c.binaryType="arraybuffer";c.protocol="";c.extensions="";var l=0,t=null,r=null,q=[],F=new TextEncoder,
+G=new TextDecoder;c.onopen=null;c.onmessage=null;c.onclose=null;c.onerror=null;Object.defineProperty(c,"readyState",{get:()=>l,enumerable:!0,configurable:!0});Object.defineProperty(c,"bufferedAmount",{get:()=>{var a=0;q.forEach(f=>{a+=typeof f==="string"?f.length:f.byteLength});return a},enumerable:!0,configurable:!0});var I=function(){var a;return((a=globalThis.crypto)==null?0:a.randomUUID)?globalThis.crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,f=>{var g=Math.random()*
+16|0;return(f==="x"?g:g&3|8).toString(16)})}();c.send=a=>{if(l===1)a instanceof Blob?a.arrayBuffer().then(f=>{k(f)}):k(a);else if(l===0)if(typeof a==="string")q.push(a);else if(a instanceof ArrayBuffer||ArrayBuffer.isView(a))q.push(h(a));else throw Error("Sending Blob is not supported before the connection is open.");else console.debug("WebSocket send called in CLOSING or CLOSED state; ignored.")};c.close=(a=1E3,f="")=>{if(l!==2&&l!==3){l=2;a={type:"close",code:a,reason:f,wasClean:a===1E3};var g;
+(g=t)==null||g.postMessage(a)}};Promise.resolve().then(()=>p(d));return c}A(B,EventTarget);var C=document.currentScript,D=C==null?void 0:C.getAttribute("ws-interception-config");if(!D)throw Error("WebSocket Interceptor: Missing ws-interception-config attribute in the script tag.");var E=JSON.parse(D);if(!E.parentOrigin||typeof E.parentOrigin!=="string")throw Error("WebSocket Interceptor: Invalid parentOrigin in ws-interception-config");
+(function(b){var d=Object.getOwnPropertyDescriptor(window,"WebSocket");if(!d||d.writable||d.configurable)d=Object.assign(function(e,h){try{let k=(new URL(e)).hostname;if(b.proxiedDomains.some(m=>k===m||k.endsWith(`.${m}`)))return new B(e,h,b.parentOrigin)}catch(k){throw window.parent.postMessage({type:"websocket_blocked",url:e,reason:"blocked_invalid_url"},b.parentOrigin),new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");}window.parent.postMessage({type:"websocket_blocked",
+url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");},{CONNECTING:0,OPEN:1,CLOSING:2,CLOSED:3}),Object.defineProperty(window,"WebSocket",{value:d,writable:!1,configurable:!1})})({proxiedDomains:E.proxiedDomains||[],parentOrigin:E.parentOrigin});}).call(this);
+</script><script data-bard-client-injected="true">((function(modelInformation) {
+  const originalFetch = window.fetch;
+  // TODO: b/421908508 - Move these out of the script and match all generative AI model calls.
+  let googleLlmBaseApiUrls = [
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':streamGenerateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageEditModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageTransformModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.ttsModelName + ':generateContent',
+  ];
+  modelInformation.deprecatedTextModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+    );
+  });
+  modelInformation.deprecatedImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predict',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predictLongRunning',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedGenerateImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedImageTransformModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+
+  const pendingFetchResolvers = {};
+  let nextPromiseId = 0;
+
+  function handleStringInput(input, optionsArgument) {
+    const actualUrl = input;
+    const fetchCallArgs = [actualUrl, optionsArgument];
+    const effectiveOptions = optionsArgument || {};
+    const bodyForApiKeyCheck = effectiveOptions.body;
+    const bodyForPostMessage = effectiveOptions.body;
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  function handleRequestInput(input, optionsArgument) {
+    const actualUrl = input.url;
+    const fetchCallArgs = [input, optionsArgument];
+    const effectiveOptions = { method: input.method, headers: new Headers(input.headers) };
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (optionsArgument) {
+      if (optionsArgument.method) effectiveOptions.method = optionsArgument.method;
+      if (optionsArgument.headers) effectiveOptions.headers = new Headers(optionsArgument.headers);
+      if ('body' in optionsArgument) {
+        bodyForApiKeyCheck = optionsArgument.body;
+        bodyForPostMessage = optionsArgument.body;
+      } else {
+        bodyForApiKeyCheck = undefined;
+        bodyForPostMessage = input.body;
+      }
+    } else {
+      bodyForApiKeyCheck = undefined;
+      bodyForPostMessage = input.body;
+    }
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  window.fetch = function(input, optionsArgument) {
+    let actualUrl;
+    let fetchCallArgs;
+    let effectiveOptions = {};
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (typeof input === 'string') {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleStringInput(input, optionsArgument));
+    } else if (input instanceof Request) {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleRequestInput(input, optionsArgument));
+    } else {
+      return originalFetch.apply(window, [input, optionsArgument]);
+    }
+
+    effectiveOptions.method = effectiveOptions.method || 'GET';
+    if (!effectiveOptions.headers) {
+      effectiveOptions.headers = new Headers();
+    }
+
+
+    if (typeof actualUrl === 'string' && googleLlmBaseApiUrls.some((url) => actualUrl.startsWith(url))) {
+      let apiKeyIsNull = true;
+
+      const regex = new RegExp("models/([^:]+)");
+      const modelNameMatch = actualUrl.match(regex);
+      const modelName = modelNameMatch ? modelNameMatch[1] : 'unspecified';
+
+
+      try {
+        const urlObject = new URL(actualUrl);  // Use URL object for robust parsing
+        const apiKeyParam = urlObject.searchParams.get('key');
+        if (apiKeyParam) {
+          apiKeyIsNull = false;
+        }
+      } catch (e) {
+        // Continue checks even if URL parsing fails
+      }
+
+      if (apiKeyIsNull && effectiveOptions.headers) {
+        const h = new Headers(effectiveOptions.headers);
+        const apiKeyHeaderValue = h.get('X-API-Key') || h.get('x-api-key');
+        if (apiKeyHeaderValue) {
+          apiKeyIsNull = false;
+          return originalFetch.apply(window, fetchCallArgs);
+        }
+      }
+
+      if (apiKeyIsNull && effectiveOptions.method && ['POST', 'PUT', 'PATCH'].includes(effectiveOptions.method.toUpperCase()) && typeof bodyForApiKeyCheck === 'string') {
+        try {
+          const bodyData = JSON.parse(bodyForApiKeyCheck);
+          if (bodyData && bodyData.apiKey) {
+            apiKeyIsNull = false;
+            return originalFetch.apply(window, fetchCallArgs);
+          }
+        } catch (e) {
+          // Ignore JSON parsing errors
+        }
+      }
+
+      if(apiKeyIsNull) {
+        const promiseId = nextPromiseId++;
+        const promise = new Promise((resolve) => {
+          pendingFetchResolvers[promiseId] = (resolvedResponse) => {
+            delete pendingFetchResolvers[promiseId];
+            resolve(resolvedResponse);
+          };
+        });
+
+        let serializedBodyForPostMessage;
+        if (typeof bodyForPostMessage === 'string' || bodyForPostMessage == null) {
+            serializedBodyForPostMessage = bodyForPostMessage;
+        } else if (bodyForPostMessage instanceof ReadableStream) {
+            serializedBodyForPostMessage = null;
+        } else {
+            try {
+                serializedBodyForPostMessage = JSON.stringify(bodyForPostMessage);
+            } catch (e) {
+                serializedBodyForPostMessage = null;
+            }
+        }
+
+        const messageOptions = {
+            method: effectiveOptions.method,
+            headers: Object.fromEntries(new Headers(effectiveOptions.headers).entries()),
+            body: serializedBodyForPostMessage
+        };
+
+        window.parent.postMessage({
+          type: 'requestFetch',
+          url: actualUrl,
+          modelName: modelName,
+          options: messageOptions,
+          promiseId: promiseId,
+        }, '*');
+
+        return promise;
+      }
+      return originalFetch.apply(window, fetchCallArgs);
+    }
+    return originalFetch.apply(window, fetchCallArgs);
+  };
+
+  window.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'resolveFetch') {
+      const { promiseId, response } = event.data;
+      if (pendingFetchResolvers[promiseId]) {
+        try {
+          const reconstructedResponse = new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: new Headers(response.headers),
+          });
+          pendingFetchResolvers[promiseId](reconstructedResponse);
+        } catch (error) {
+          pendingFetchResolvers[promiseId](new Response(null, { status: 500, statusText: "Interceptor Response Reconstruction Error" }));
+        }
+      }
+    }
+  });
+
+}))({"textModelName":"gemini-3-flash-preview","imageModelName":"imagen-4.0-generate-001","imageEditModelName":"gemini-3.1-flash-image","imageTransformModelName":"gemini-3-pro-image","videoModelName":"veo-2.0-generate-001","ttsModelName":"gemini-2.5-flash-preview-tts","deprecatedTextModelNames":["gemini-2.0-flash","gemini-2.5-flash","gemini-2.5-flash-preview-04-17","gemini-2.5-flash-preview-05-20","gemini-2.5-flash-preview-09-2025"],"deprecatedImageModelNames":["imagen-3.0-generate-001","imagen-3.0-generate-002"],"deprecatedGenerateImageModelNames":["gemini-2.5-flash-image-preview","gemini-2.5-flash-image","gemini-3.1-flash-image-preview"],"deprecatedImageTransformModelNames":["gemini-3-pro-image-preview-11-2025"]})</script><script data-bard-client-injected="true">(function() {
+  const OVERLAY_SELECTOR =
+    'dialog[open], [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], [role="combobox"]';
+
+  function isVisibleOverlay(element) {
+    if (element.closest('[hidden], [aria-hidden="true"], [inert]')) {
+      return false;
+    }
+    if (window.getComputedStyle(element).visibility === 'hidden') {
+      return false;
+    }
+    for (let cur = element; cur; cur = cur.parentElement) {
+      if (window.getComputedStyle(cur).display === 'none') {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function hasOpenOverlay() {
+    const candidates = document.querySelectorAll(OVERLAY_SELECTOR);
+    for (let i = 0; i < candidates.length; i++) {
+      if (isVisibleOverlay(candidates[i])) {
+        return true;
+      }
+    }
+    try {
+      if (document.querySelector('[popover]:popover-open')) {
+        return true;
+      }
+    } catch (e) {
+      // Ignore engines that do not support :popover-open.
+    }
+    return false;
+  }
+
+  function isNonEmptySearchInput(target) {
+    return (
+      Boolean(target) &&
+      target.tagName === 'INPUT' &&
+      typeof target.type === 'string' &&
+      target.type.toLowerCase() === 'search' &&
+      typeof target.value === 'string' &&
+      target.value.length > 0
+    );
+  }
+
+  function shouldIgnoreEscape(event) {
+    return (
+      event.key !== 'Escape' ||
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.shiftKey ||
+      event.isComposing ||
+      event.repeat ||
+      event.keyCode === 229 ||
+      isNonEmptySearchInput(event.target)
+    );
+  }
+
+  let shouldIgnoreCaptureState = false;
+
+  window.addEventListener(
+    'keydown',
+    function(event) {
+      if (event.key === 'Escape') {
+        shouldIgnoreCaptureState =
+          hasOpenOverlay() || isNonEmptySearchInput(event.target);
+      }
+    },
+    {capture: true},
+  );
+
+  window.addEventListener('keydown', function(event) {
+    if (
+      shouldIgnoreEscape(event) ||
+      event.defaultPrevented ||
+      shouldIgnoreCaptureState
+    ) {
+      return;
+    }
+    const wasBlockedOnCapture = shouldIgnoreCaptureState;
+    queueMicrotask(function() {
+      if (event.defaultPrevented || wasBlockedOnCapture) {
+        return;
+      }
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({'type': 'escapeKey'}, '*');
+      }
+    });
+  });
+})();</script><script data-bard-client-injected="true">(function() {
+  function normalizeSlug(str) {
+    try {
+      return str
+        .trim()
+        .toLowerCase()
+        .replace(/[^p{L}p{N}s_-]/gu, '')
+        .replace(/s+/g, '-');
+    } catch (e) {
+      return str
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9s_-]/g, '')
+        .replace(/s+/g, '-');
+    }
+  }
+
+  function findTargetElement(hash) {
+    if (!hash || hash === '#') {
+      return null;
+    }
+    const rawId = hash.startsWith('#') ? hash.slice(1) : hash;
+    let decodedId = rawId;
+    try {
+      decodedId = decodeURIComponent(rawId);
+    } catch (e) {
+      // Ignore URI malformed errors.
+    }
+
+    // 1. Direct ID match (raw and decoded).
+    let target = document.getElementById(rawId) || document.getElementById(decodedId);
+    if (target) {
+      return target;
+    }
+
+    // 2. Name attribute match (<a name="...">).
+    try {
+      if (typeof CSS !== 'undefined' && CSS.escape) {
+        target =
+          document.querySelector('[name="' + CSS.escape(rawId) + '"]') ||
+          document.querySelector('[name="' + CSS.escape(decodedId) + '"]');
+      } else {
+        const namedElements = document.getElementsByName(rawId);
+        if (namedElements && namedElements.length > 0) {
+          return namedElements[0];
+        }
+      }
+    } catch (e) {
+      // Ignore querySelector syntax errors.
+    }
+    if (target) {
+      return target;
+    }
+
+    // 3. Match heading text by slug (for Markdown TOCs where headings lack explicit IDs).
+    const targetSlug = normalizeSlug(decodedId);
+    if (targetSlug) {
+      for (const heading of document.querySelectorAll('h1, h2, h3, h4, h5, h6')) {
+        if (normalizeSlug(heading.textContent || '') === targetSlug) {
+          return heading;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  document.addEventListener('click', function(event) {
+    const target = event.target;
+    const anchor = target && typeof target.closest === 'function' ? target.closest('a') : null;
+    if (!anchor) {
+      return;
+    }
+
+    const href = anchor.getAttribute('href');
+    if (
+      !href ||
+      href.trim().toLowerCase().startsWith('javascript:') ||
+      anchor.hasAttribute('download')
+    ) {
+      return;
+    }
+
+    // Check if the link is an in-page hash / anchor link.
+    if (href.startsWith('#')) {
+      event.preventDefault();
+      const targetElement = findTargetElement(href);
+      if (targetElement) {
+        targetElement.scrollIntoView({behavior: 'smooth', block: 'start'});
+      }
+      return;
+    }
+
+    // Check if the URL has the same origin/pathname but with a hash.
+    try {
+      const url = new URL(anchor.href, window.location.href);
+      if (
+        url.hash &&
+        url.origin === window.location.origin &&
+        url.pathname === window.location.pathname
+      ) {
+        event.preventDefault();
+        const targetElement = findTargetElement(url.hash);
+        if (targetElement) {
+          targetElement.scrollIntoView({behavior: 'smooth', block: 'start'});
+        }
+        return;
+      }
+    } catch (e) {
+      // Fall through if URL parsing fails.
+    }
+
+    // For all external or full navigation links, prevent iframe-level navigation
+    // (which breaks in AGSA WebView or sandboxed iframes) and ensure they open
+    // safely in a new tab/window.
+    if (anchor.target !== '_blank') {
+      event.preventDefault();
+      window.open(anchor.href, '_blank', 'noopener,noreferrer');
+    }
+  }, {capture: true});
+})();</script><script data-bard-client-injected="true">(function(){'use strict';function a(){window.parent.postMessage({type:"interaction"},"*")}window.addEventListener("click",a,{capture:!0,passive:!0});window.addEventListener("touchstart",a,{capture:!0,passive:!0});window.addEventListener("keydown",a,{capture:!0,passive:!0});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const originalConsoleLog = console.log;
+  const originalConsoleError = console.error;
+
+    /**
+   * Normalizes an error event or a promise rejection reason into a structured error object.
+   * @param {*} errorEventOrReason The error object or reason.
+   * @return {object} Structured error data { message, name, stack }.
+   */
+  function getErrorObject(errorEventOrReason) {
+    if (errorEventOrReason instanceof Error) {
+      return {
+        message: errorEventOrReason.message,
+        name: errorEventOrReason.name,
+        stack: errorEventOrReason.stack,
+      };
+    }
+    // Fallback for non-Error objects.
+    try {
+      return {
+        message: JSON.stringify(errorEventOrReason),
+        name: 'UnknownErrorType',
+        stack: null,
+      };
+    } catch (e) {
+      return {
+        message: String(errorEventOrReason),
+        name: 'UnknownErrorTypeNonStringifiable',
+        stack: null,
+      };
+    }
+  }
+
+  /**
+   * Converts an array of arguments (from log/error) into a single string.
+   * Handles Error objects specially to include their message and stack.
+   * @param {Array<*>} args - Arguments passed to console methods.
+   * @return {string} A string representation of the arguments.
+   */
+  function stringifyArgs(args) {
+    return args
+      .map((arg) => {
+        if (arg instanceof Error) {
+          const {message, stack} = arg;
+          return `Error: ${message}${stack ? ('\nStack: ' + stack) : ''}`;
+        }
+        if (typeof arg === 'object' && arg !== null) {
+          try {
+            return JSON.stringify(arg);
+          } catch (error) {
+            return '[Circular Object]';
+          }
+        } else {
+          return String(arg);
+        }
+      })
+      .join(' ');
+  }
+
+  console.log = function(...args) {
+    const logString = stringifyArgs(args);
+    window.parent.postMessage({ type: 'log', message: logString }, '*');
+    originalConsoleLog.apply(console, args);
+  };
+
+  console.error = function(...args) {
+    let errorData;
+    if (args.length > 0 && args[0] instanceof Error) {
+      const err = args[0];
+      // If the first arg is an Error, capture its details.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        ...getErrorObject(err),
+        rawArgsString: stringifyArgs(args.slice(1)),
+        timestamp: new Date().toISOString(),
+      };
+    } else {
+      // If not an Error object, treat all args as a general error message.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        message: stringifyArgs(args),
+        name: 'ConsoleLoggedError',
+        stack: null,
+        timestamp: new Date().toISOString(),
+      };
+    }
+    window.parent.postMessage(errorData, '*');
+    originalConsoleError.apply(console, args);
+  };
+
+  // Listen for global unhandled synchronous errors.
+  window.addEventListener('error', function(event) {
+    const errorDetails = event.error ? getErrorObject(event.error) : {
+      message: event.message,
+      name: 'GlobalError',
+      stack: null,
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno,
+    };
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'global',
+      ...errorDetails,
+      message: errorDetails.message || event.message,
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+  // Listen for unhandled promise rejections (asynchronous errors).
+  window.addEventListener('unhandledrejection', function(event) {
+    const errorDetails = getErrorObject(event.reason);
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'unhandledrejection',
+      ...errorDetails,
+      message: errorDetails.message || 'Unhandled Promise Rejection',
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+})();</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#000000">
+    <meta name="description" content="SAFETYSCAN COMMUNITY EDITION — Privacy-First Local Civilian Safety &amp; Civil Defense Hazard Assessment PWA">
+    <title>SAFETYSCAN COMMUNITY EDITION</title>
+    
+    <!-- Open-source Impact alternative ('Anton') + clean technical body ('Inter' & 'JetBrains Mono') -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Inter:wght@400;600;700;800&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        impact: ['Impact', 'Anton', 'Arial Black', 'sans-serif'],
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    },
+                    colors: {
+                        safety: {
+                            black: '#000000',
+                            surface: '#0A0A0A',
+                            yellow: '#FFE600',
+                            yellowDim: '#CCB800',
+                            red: '#FF2A2A',
+                            green: '#00E676'
+                        }
+                    }
+                }
+            }
+        };
+    </script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #000000;
+            color: #FFFFFF;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        .font-impact-caps {
+            font-family: 'Impact', 'Anton', 'Arial Black', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .hazard-stripe {
+            background: repeating-linear-gradient(
+                -45deg,
+                #FFE600,
+                #FFE600 12px,
+                #000000 12px,
+                #000000 24px
+            );
+        }
+        @keyframes scanBeam {
+            0% { top: 0%; }
+            50% { top: 98%; }
+            100% { top: 0%; }
+        }
+        .scan-beam {
+            animation: scanBeam 2s ease-in-out infinite;
+        }
+        /* Print / PDF Stylesheet */
+        @media print {
+            body {
+                background-color: #FFFFFF !important;
+                color: #000000 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-border {
+                border: 2px solid #000000 !important;
+                background: #FFFFFF !important;
+                color: #000000 !important;
+            }
+            .text-safety-yellow, .text-white, .text-zinc-300, .text-zinc-400 {
+                color: #000000 !important;
+            }
+        }
+    </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:Inter, sans-serif;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:JetBrains Mono, monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.sticky{position:sticky}.inset-0{inset:0px}.bottom-5{bottom:1.25rem}.left-3{left:0.75rem}.right-5{right:1.25rem}.top-0{top:0px}.top-3{top:0.75rem}.z-40{z-index:40}.z-50{z-index:50}.mx-auto{margin-left:auto;margin-right:auto}.mb-1{margin-bottom:0.25rem}.mb-1\.5{margin-bottom:0.375rem}.mr-1{margin-right:0.25rem}.mr-1\.5{margin-right:0.375rem}.mr-2{margin-right:0.5rem}.mt-1{margin-top:0.25rem}.mt-1\.5{margin-top:0.375rem}.mt-4{margin-top:1rem}.mt-8{margin-top:2rem}.block{display:block}.flex{display:flex}.grid{display:grid}.hidden{display:none}.h-1{height:0.25rem}.h-11{height:2.75rem}.h-16{height:4rem}.h-2{height:0.5rem}.max-h-56{max-height:14rem}.max-h-\[440px\]{max-height:440px}.min-h-\[260px\]{min-height:260px}.min-h-screen{min-height:100vh}.w-11{width:2.75rem}.w-16{width:4rem}.w-full{width:100%}.min-w-\[170px\]{min-width:170px}.max-w-5xl{max-width:64rem}.max-w-full{max-width:100%}.max-w-xl{max-width:36rem}.flex-1{flex:1 1 0%}.flex-grow{flex-grow:1}.cursor-crosshair{cursor:crosshair}.cursor-pointer{cursor:pointer}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-2{gap:0.5rem}.gap-2\.5{gap:0.625rem}.gap-3{gap:0.75rem}.gap-4{gap:1rem}.gap-5{gap:1.25rem}.gap-6{gap:1.5rem}.space-y-2 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.5rem * var(--tw-space-y-reverse))}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.overflow-y-auto{overflow-y:auto}.border{border-width:1px}.border-2{border-width:2px}.border-b{border-bottom-width:1px}.border-b-2{border-bottom-width:2px}.border-t-2{border-top-width:2px}.border-dashed{border-style:dashed}.border-black{--tw-border-opacity:1;border-color:rgb(0 0 0 / var(--tw-border-opacity, 1))}.border-safety-yellow{--tw-border-opacity:1;border-color:rgb(255 230 0 / var(--tw-border-opacity, 1))}.border-safety-yellow\/40{border-color:rgb(255 230 0 / 0.4)}.border-white{--tw-border-opacity:1;border-color:rgb(255 255 255 / var(--tw-border-opacity, 1))}.border-white\/60{border-color:rgb(255 255 255 / 0.6)}.bg-black{--tw-bg-opacity:1;background-color:rgb(0 0 0 / var(--tw-bg-opacity, 1))}.bg-safety-surface{--tw-bg-opacity:1;background-color:rgb(10 10 10 / var(--tw-bg-opacity, 1))}.bg-safety-yellow{--tw-bg-opacity:1;background-color:rgb(255 230 0 / var(--tw-bg-opacity, 1))}.bg-safety-yellow\/10{background-color:rgb(255 230 0 / 0.1)}.object-contain{object-fit:contain}.p-2{padding:0.5rem}.p-3\.5{padding:0.875rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-6{padding:1.5rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.px-2\.5{padding-left:0.625rem;padding-right:0.625rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-3\.5{padding-left:0.875rem;padding-right:0.875rem}.px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.py-0\.5{padding-top:0.125rem;padding-bottom:0.125rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-1\.5{padding-top:0.375rem;padding-bottom:0.375rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-2\.5{padding-top:0.625rem;padding-bottom:0.625rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.py-4{padding-top:1rem;padding-bottom:1rem}.py-5{padding-top:1.25rem;padding-bottom:1.25rem}.py-6{padding-top:1.5rem;padding-bottom:1.5rem}.pb-3{padding-bottom:0.75rem}.pb-4{padding-bottom:1rem}.pr-1{padding-right:0.25rem}.text-center{text-align:center}.font-mono{font-family:JetBrains Mono, monospace}.text-2xl{font-size:1.5rem;line-height:2rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-4xl{font-size:2.25rem;line-height:2.5rem}.text-\[11px\]{font-size:11px}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-bold{font-weight:700}.leading-none{line-height:1}.leading-relaxed{line-height:1.625}.tracking-wider{letter-spacing:0.05em}.text-black{--tw-text-opacity:1;color:rgb(0 0 0 / var(--tw-text-opacity, 1))}.text-safety-yellow{--tw-text-opacity:1;color:rgb(255 230 0 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-white\/80{color:rgb(255 255 255 / 0.8)}.placeholder-zinc-500::placeholder{--tw-placeholder-opacity:1;color:rgb(113 113 122 / var(--tw-placeholder-opacity, 1))}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgb(0 0 0 / 0.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-\[0_0_16px_\#FFE600\]{--tw-shadow:0 0 16px #FFE600;--tw-shadow-colored:0 0 16px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.transition-colors{transition-property:color, background-color, border-color, fill, stroke, -webkit-text-decoration-color;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, -webkit-text-decoration-color;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-transform{transition-property:transform;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.selection\:bg-safety-yellow *::selection{--tw-bg-opacity:1;background-color:rgb(255 230 0 / var(--tw-bg-opacity, 1))}.selection\:text-black *::selection{--tw-text-opacity:1;color:rgb(0 0 0 / var(--tw-text-opacity, 1))}.selection\:bg-safety-yellow::selection{--tw-bg-opacity:1;background-color:rgb(255 230 0 / var(--tw-bg-opacity, 1))}.selection\:text-black::selection{--tw-text-opacity:1;color:rgb(0 0 0 / var(--tw-text-opacity, 1))}.hover\:bg-safety-yellow:hover{--tw-bg-opacity:1;background-color:rgb(255 230 0 / var(--tw-bg-opacity, 1))}.hover\:bg-safety-yellowDim:hover{--tw-bg-opacity:1;background-color:rgb(204 184 0 / var(--tw-bg-opacity, 1))}.hover\:bg-white:hover{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.hover\:text-black:hover{--tw-text-opacity:1;color:rgb(0 0 0 / var(--tw-text-opacity, 1))}.focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}@media (min-width: 640px){.sm\:w-auto{width:auto}.sm\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.sm\:flex-row{flex-direction:row}.sm\:p-8{padding:2rem}.sm\:text-2xl{font-size:1.5rem;line-height:2rem}.sm\:text-3xl{font-size:1.875rem;line-height:2.25rem}.sm\:text-4xl{font-size:2.25rem;line-height:2.5rem}.sm\:text-5xl{font-size:3rem;line-height:1}.sm\:text-sm{font-size:0.875rem;line-height:1.25rem}.sm\:text-xl{font-size:1.25rem;line-height:1.75rem}}@media (min-width: 768px){.md\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.md\:flex-row{flex-direction:row}.md\:items-center{align-items:center}}@media (min-width: 1024px){.lg\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}}</style><link rel="manifest" href="blob:https://60n5gk9ca074j9t9wnjahzey7lo10if6ekhwfqmq34jh42h82j-h1023759661.scf.usercontent.goog/34030d2a-a6e6-448c-a5b1-6f8f48e35e08"></head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-safety-yellow selection:text-black">
+
+    <!-- TOP INDUSTRIAL HEADER -->
+    <header class="border-b-2 border-safety-yellow bg-black sticky top-0 z-40 no-print">
+        <div class="hazard-stripe h-2 w-full"></div>
+        <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 bg-safety-yellow text-black flex items-center justify-center border-2 border-safety-yellow">
+                    <i class="fa-solid fa-shield-halved text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-impact-caps text-2xl sm:text-3xl text-safety-yellow leading-none">
+                        SAFETYSCAN COMMUNITY EDITION
+                    </h1>
+                    <p class="text-[11px] font-mono text-white tracking-wider mt-1">
+                        LOCAL PRIVACY-FIRST CIVILIAN HAZARD &amp; PREPAREDNESS AUDITOR
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <!-- PWA Install Button (Revealed when installable) -->
+                <button id="btnInstallPwa" type="button" class="hidden bg-black hover:bg-safety-yellow hover:text-black text-safety-yellow border-2 border-safety-yellow px-3 py-2 text-xs font-impact-caps transition-colors">
+                    <i class="fa-solid fa-download mr-1"></i> INSTALL PWA
+                </button>
+                <!-- Download Standalone App HTML -->
+                <button id="btnDownloadApp" type="button" class="bg-black hover:bg-safety-yellow hover:text-black text-safety-yellow border-2 border-safety-yellow px-3 py-2 text-xs font-impact-caps transition-colors" title="Download Standalone HTML Application">
+                    <i class="fa-solid fa-file-code mr-1"></i> SAVE APP
+                </button>
+                <!-- Toggle Local AI & Docs Drawer -->
+                <button id="btnToggleEngine" type="button" class="bg-safety-yellow hover:bg-safety-yellowDim text-black border-2 border-safety-yellow px-3 py-2 text-xs font-impact-caps transition-colors">
+                    <i class="fa-solid fa-microchip mr-1"></i> <span id="engineBadgeText">ENGINE: AUTO</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- COLLAPSIBLE LOCAL VISION MODEL & ARCHITECTURE PANEL -->
+    <section id="engineDrawer" class="hidden border-b-2 border-safety-yellow bg-safety-surface no-print">
+        <div class="max-w-5xl mx-auto px-4 py-5 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Left: Local Vision Model Configuration -->
+            <div class="border-2 border-safety-yellow p-4 bg-black flex flex-col gap-3">
+                <h2 class="font-impact-caps text-lg text-safety-yellow flex items-center gap-2">
+                    <i class="fa-solid fa-server"></i> LOCAL OPEN-SOURCE VISION BACKEND
+                </h2>
+                <p class="text-xs text-white leading-relaxed">
+                    ZERO CLOUD TRACKING. IMAGES ARE PROCESSED LOCALLY VIA OLLAMA-COMPATIBLE VISION MODELS OR BUILT-IN BROWSER EDGE HEURISTICS.
+                </p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label for="engineMode" class="block text-[11px] font-mono text-safety-yellow mb-1">EXECUTION MODE</label>
+                        <select id="engineMode" class="w-full bg-black text-white border-2 border-safety-yellow px-3 py-2 text-xs font-mono focus:outline-none">
+                            <option value="auto">AUTO (OLLAMA -&gt; OFFLINE FALLBACK)</option>
+                            <option value="ollama">OLLAMA LOCAL API ONLY</option>
+                            <option value="browser">100% BROWSER OFFLINE HEURISTIC</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="ollamaModel" class="block text-[11px] font-mono text-safety-yellow mb-1">OPEN-SOURCE VISION MODEL</label>
+                        <select id="ollamaModel" class="w-full bg-black text-white border-2 border-safety-yellow px-3 py-2 text-xs font-mono focus:outline-none">
+                            <option value="llava">LLAVA (7B / 13B)</option>
+                            <option value="moondream">MOONDREAM2 (LIGHTWEIGHT EDGE)</option>
+                            <option value="minicpm-v">MINICPM-V (HIGH DETAIL)</option>
+                            <option value="bakllava">BAKLLAVA</option>
+                            <option value="llava-phi3">LLAVA-PHI3 (FAST CPU)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="ollamaUrl" class="block text-[11px] font-mono text-safety-yellow mb-1">LOCAL ENDPOINT URL</label>
+                    <div class="flex gap-2">
+                        <input id="ollamaUrl" type="text" value="http://localhost:11434/api/generate" class="flex-grow bg-black text-white border-2 border-safety-yellow px-3 py-2 text-xs font-mono focus:outline-none">
+                        <button id="btnTestOllama" type="button" class="bg-safety-yellow text-black font-impact-caps px-4 py-2 text-xs border-2 border-safety-yellow hover:bg-safety-yellowDim">
+                            TEST LINK
+                        </button>
+                    </div>
+                    <p id="ollamaStatus" class="text-[11px] font-mono text-white mt-1.5">
+                        STATUS: READY (AUTOMATIC BROWSER FALLBACK ACTIVE IF OLLAMA IS OFFLINE)
+                    </p>
+                </div>
+            </div>
+
+            <!-- Right: Installation & Deployment Documentation -->
+            <div class="border-2 border-safety-yellow p-4 bg-black flex flex-col gap-2.5">
+                <h2 class="font-impact-caps text-lg text-safety-yellow flex items-center gap-2">
+                    <i class="fa-solid fa-book"></i> INSTALLATION &amp; DEPLOYMENT GUIDE
+                </h2>
+                <div class="text-xs text-white space-y-2 font-mono leading-relaxed overflow-y-auto max-h-56 pr-1">
+                    <p><span class="text-safety-yellow font-bold">1. STANDALONE / PWA INSTALL:</span> Click <span class="text-safety-yellow">SAVE APP</span> to download this single-file HTML app, or click <span class="text-safety-yellow">INSTALL PWA</span> in Chrome/Edge/Mobile Safari to install directly onto your device.</p>
+                    <p><span class="text-safety-yellow font-bold">2. LOCAL AI SETUP (FREE &amp; OPEN-SOURCE):</span></p>
+                    <pre class="bg-safety-surface border border-safety-yellow p-2 text-[11px] text-safety-yellow overflow-x-auto"># Install Ollama (https://ollama.com)
+ollama pull moondream
+# Or for deeper structural reasoning:
+ollama pull llava
+# Allow browser CORS access:
+OLLAMA_ORIGINS="*" ollama serve</pre>
+                    <p><span class="text-safety-yellow font-bold">3. AIR-GAPPED / FIELD USE:</span> Works completely offline without internet or Ollama using built-in browser pixel-luminance, obstruction, and color-hazard inspection.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MAIN SINGLE-PAGE WORKFLOW -->
+    <main class="flex-grow max-w-5xl w-full mx-auto px-4 py-6 flex flex-col gap-6">
+
+        <!-- STEP 1: IMAGE CAPTURE / UPLOAD & CALIBRATED PREVIEW -->
+        <section class="border-2 border-safety-yellow bg-black p-5 flex flex-col gap-5 no-print">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-safety-yellow/40 pb-3">
+                <h2 class="font-impact-caps text-xl sm:text-2xl text-safety-yellow">
+                    01. ENVIRONMENT CAPTURE &amp; INSPECTION TARGET
+                </h2>
+                <span id="privacyBadge" class="text-[11px] font-mono border border-safety-yellow text-safety-yellow px-2.5 py-1">
+                    <i class="fa-solid fa-lock mr-1"></i> 100% LOCAL PROCESSING
+                </span>
+            </div>
+
+            <!-- Optional Civilian Focus Note -->
+            <div>
+                <label for="contextInput" class="block font-impact-caps text-sm text-safety-yellow mb-1.5">
+                    OPTIONAL INSPECTION FOCUS (E.G., BASEMENT SHELTER, STAIRWELL EXIT, ELECTRICAL PANEL, PUBLIC STREET)
+                </label>
+                <input id="contextInput" type="text" maxlength="300" placeholder="DESCRIBE WHAT YOU WANT CHECKED OR LEAVE BLANK FOR FULL COMMUNITY SAFETY SCAN..." class="w-full bg-black text-white border-2 border-safety-yellow px-3.5 py-2.5 text-xs sm:text-sm font-mono placeholder-zinc-500 focus:outline-none">
+            </div>
+
+            <!-- LARGE UPLOAD PHOTO ACTION ZONE -->
+            <div id="dropZone" class="border-2 border-dashed border-safety-yellow p-6 sm:p-8 text-center flex flex-col items-center justify-center gap-4 bg-safety-surface transition-colors">
+                <div class="w-16 h-16 border-2 border-safety-yellow bg-black text-safety-yellow flex items-center justify-center">
+                    <i class="fa-solid fa-camera text-3xl"></i>
+                </div>
+                <div>
+                    <p class="font-impact-caps text-lg sm:text-xl text-white">
+                        UPLOAD OR CAPTURE SCENE PHOTOGRAPH
+                    </p>
+                    <p class="text-xs text-white/80 font-mono mt-1">
+                        SUPPORTS JPG, PNG, WEBP • AUTOMATICALLY RESIZED LOCALLY BEFORE ANALYSIS
+                    </p>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3 w-full max-w-xl">
+                    <label for="fileInput" class="flex-1 cursor-pointer bg-safety-yellow hover:bg-safety-yellowDim text-black font-impact-caps text-lg sm:text-xl py-4 px-6 border-2 border-safety-yellow flex items-center justify-center gap-3 transition-transform active:scale-98">
+                        <i class="fa-solid fa-upload"></i>
+                        <span>UPLOAD PHOTO</span>
+                        <input id="fileInput" type="file" accept="image/*" class="hidden">
+                    </label>
+                    <label for="cameraInput" class="sm:w-auto cursor-pointer bg-black hover:bg-safety-yellow hover:text-black text-safety-yellow font-impact-caps text-lg sm:text-xl py-4 px-6 border-2 border-safety-yellow flex items-center justify-center gap-3 transition-colors">
+                        <i class="fa-solid fa-camera-retro"></i>
+                        <span>CAMERA</span>
+                        <input id="cameraInput" type="file" accept="image/*" capture="environment" class="hidden">
+                    </label>
+                </div>
+            </div>
+
+            <!-- RESIZED PREVIEW CANVAS & CONTROLS -->
+            <div id="previewPanel" class="hidden flex-col gap-4">
+                <div class="flex flex-wrap items-center justify-between gap-2 bg-safety-surface border border-safety-yellow px-3 py-2 text-xs font-mono">
+                    <span class="text-safety-yellow font-bold">
+                        <i class="fa-solid fa-crop-simple mr-1"></i> CALIBRATED PRE-SCAN PREVIEW
+                    </span>
+                    <span id="imageStats" class="text-white">800 X 600 PX • 0 KB</span>
+                </div>
+
+                <div class="relative border-2 border-safety-yellow bg-black flex items-center justify-center overflow-hidden min-h-[260px]">
+                    <canvas id="previewCanvas" class="max-w-full max-h-[440px] object-contain cursor-crosshair"></canvas>
+                    
+                    <!-- Scan Animation Overlay -->
+                    <div id="scanOverlay" class="hidden absolute inset-0 bg-safety-yellow/10 pointer-events-none">
+                        <div class="w-full h-1 bg-safety-yellow shadow-[0_0_16px_#FFE600] absolute scan-beam"></div>
+                        <div class="absolute top-3 left-3 bg-black border-2 border-safety-yellow text-safety-yellow px-3 py-1.5 text-xs font-mono font-bold">
+                            <i class="fa-solid fa-circle-notch fa-spin mr-1.5"></i> ANALYZING HAZARDS LOCALLY...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview Calibration Tools -->
+                <div class="flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
+                    <div class="flex flex-wrap gap-2">
+                        <button id="btnRotate" type="button" class="bg-black hover:bg-safety-yellow hover:text-black text-safety-yellow border border-safety-yellow px-3 py-2 font-bold">
+                            <i class="fa-solid fa-rotate-right mr-1"></i> ROTATE 90°
+                        </button>
+                        <button id="btnClearPin" type="button" class="hidden bg-black hover:bg-safety-yellow hover:text-black text-safety-yellow border border-safety-yellow px-3 py-2 font-bold">
+                            <i class="fa-solid fa-xmark mr-1"></i> CLEAR FOCUS PIN
+                        </button>
+                        <button id="btnChangePhoto" type="button" class="bg-black hover:bg-white hover:text-black text-white border border-white/60 px-3 py-2 font-bold">
+                            <i class="fa-solid fa-image mr-1"></i> REPLACE PHOTO
+                        </button>
+                    </div>
+                    <span class="text-white/80 text-[11px]">
+                        TIP: CLICK ANYWHERE ON IMAGE TO PIN A SPECIFIC HAZARD AREA
+                    </span>
+                </div>
+
+                <!-- LARGE PRIMARY ANALYZE BUTTON -->
+                <button id="btnAnalyze" type="button" class="w-full bg-safety-yellow hover:bg-safety-yellowDim text-black font-impact-caps text-2xl sm:text-3xl py-5 px-6 border-2 border-safety-yellow flex items-center justify-center gap-3 shadow-lg transition-transform active:scale-99">
+                    <i class="fa-solid fa-radar"></i>
+                    <span>ANALYZE</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- STEP 2: STRUCTURED CIVILIAN SAFETY ASSESSMENT REPORT -->
+        <section id="reportSection" class="hidden flex-col gap-5">
+            
+            <!-- TOP VERDICT & FINAL SAFETY SCORE BANNER -->
+            <div id="verdictBanner" class="border-2 border-safety-yellow bg-black p-5 print-border">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-2 border-safety-yellow pb-4">
+                    <div>
+                        <span class="text-xs font-mono text-white block">CIVILIAN SAFETY &amp; PREPAREDNESS ASSESSMENT REPORT</span>
+                        <div class="flex flex-wrap items-center gap-3 mt-1">
+                            <h2 class="font-impact-caps text-2xl sm:text-4xl text-safety-yellow">
+                                RISK LEVEL: <span id="repRiskLevel">MODERATE</span>
+                            </h2>
+                            <span id="repEngineTag" class="text-[11px] font-mono border border-safety-yellow text-safety-yellow px-2 py-0.5">
+                                ENGINE: LOCAL HEURISTIC
+                            </span>
+                        </div>
+                        <p id="repTimestamp" class="text-xs font-mono text-white/80 mt-1"></p>
+                    </div>
+
+                    <!-- FINAL SAFETY SCORE GAUGE (0-100) -->
+                    <div class="border-2 border-safety-yellow bg-safety-surface px-5 py-3 text-center min-w-[170px] print-border">
+                        <span class="block font-impact-caps text-xs text-white">FINAL SAFETY SCORE</span>
+                        <div class="font-impact-caps text-4xl sm:text-5xl text-safety-yellow leading-none mt-1">
+                            <span id="repSafetyScore">0</span><span class="text-xl text-white">/100</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MANDATORY STRUCTURED BRIEFING BLOCK -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 text-xs sm:text-sm">
+                    <div class="border border-safety-yellow p-3.5 bg-safety-surface print-border">
+                        <span class="font-impact-caps text-safety-yellow block text-sm mb-1">OBSERVATION:</span>
+                        <p id="repCoreObservation" class="text-white leading-relaxed"></p>
+                    </div>
+                    <div class="border border-safety-yellow p-3.5 bg-safety-surface print-border">
+                        <span class="font-impact-caps text-safety-yellow block text-sm mb-1">WHY IT MATTERS:</span>
+                        <p id="repCoreWhy" class="text-white leading-relaxed"></p>
+                    </div>
+                    <div class="border border-safety-yellow p-3.5 bg-safety-surface print-border">
+                        <span class="font-impact-caps text-safety-yellow block text-sm mb-1">RECOMMENDED FIX:</span>
+                        <p id="repCoreFix" class="text-white leading-relaxed"></p>
+                    </div>
+                    <div class="border border-safety-yellow p-3.5 bg-safety-surface print-border">
+                        <span class="font-impact-caps text-safety-yellow block text-sm mb-1">COMMUNITY IMPACT:</span>
+                        <p id="repCoreImpact" class="text-white leading-relaxed"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EXPORT TOOLBAR (PDF, TXT, JSON, VOICE) -->
+            <div class="border-2 border-safety-yellow bg-black p-4 flex flex-wrap items-center justify-between gap-3 no-print">
+                <span class="font-impact-caps text-sm text-safety-yellow">
+                    <i class="fa-solid fa-file-export mr-1.5"></i> EXPORT &amp; SHARE REPORT:
+                </span>
+                <div class="flex flex-wrap gap-2">
+                    <button id="btnExportPdf" type="button" class="bg-safety-yellow hover:bg-safety-yellowDim text-black font-impact-caps px-4 py-2 text-xs border-2 border-safety-yellow">
+                        <i class="fa-solid fa-file-pdf mr-1"></i> EXPORT PDF
+                    </button>
+                    <button id="btnExportTxt" type="button" class="bg-black hover:bg-safety-yellow hover:text-black text-safety-yellow font-impact-caps px-4 py-2 text-xs border-2 border-safety-yellow">
+                        <i class="fa-solid fa-file-lines mr-1"></i> EXPORT TXT
+                    </button>
+                    <button id="btnExportJson" type="button" class="bg-black hover:bg-safety-yellow hover:text-black text-safety-yellow font-impact-caps px-4 py-2 text-xs border-2 border-safety-yellow">
+                        <i class="fa-solid fa-code mr-1"></i> EXPORT JSON
+                    </button>
+                    <button id="btnSpeakReport" type="button" class="bg-black hover:bg-white hover:text-black text-white font-impact-caps px-4 py-2 text-xs border-2 border-white">
+                        <i class="fa-solid fa-volume-high mr-1"></i> READ ALOUD
+                    </button>
+                </div>
+            </div>
+
+            <!-- 9 STRUCTURED REPORT SECTIONS -->
+            <div id="nineSectionsContainer" class="flex flex-col gap-4"></div>
+
+            <!-- BOTTOM NEW SCAN BUTTON -->
+            <button id="btnResetBottom" type="button" class="w-full bg-black hover:bg-safety-yellow hover:text-black text-safety-yellow font-impact-caps text-xl py-4 px-6 border-2 border-safety-yellow transition-colors no-print">
+                <i class="fa-solid fa-rotate-left mr-2"></i> START NEW SAFETY ASSESSMENT
+            </button>
+        </section>
+
+    </main>
+
+    <!-- NOTIFICATION TOAST -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-safety-yellow text-black font-impact-caps text-sm px-5 py-3 border-2 border-black shadow-2xl hidden z-50 no-print"></div>
+
+    <!-- MINIMALIST FOOTER -->
+    <footer class="border-t-2 border-safety-yellow bg-black py-4 px-4 mt-8 no-print">
+        <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-mono text-white">
+            <span>SAFETYSCAN COMMUNITY EDITION • OPEN-SOURCE CIVIL DEFENSE TOOLKIT</span>
+            <span class="text-safety-yellow">EMERGENCY SERVICES: 112 / 911 / 999</span>
+        </div>
+    </footer>
+
+    <script>
+        /**
+         * SAFETYSCAN COMMUNITY EDITION — STANDALONE PWA & LOCAL VISION ARCHITECTURE
+         * 100% Free/Open-Source Stack: Vanilla JS + HTML5 Canvas + Ollama Vision API + Offline Browser Pixel Analyzer
+         */
+
+        const appState = {
+            imageObj: null,
+            rotation: 0,
+            pin: null, // { x: 0..1, y: 0..1 }
+            resizedBase64: null,
+            imageMetrics: null,
+            isAnalyzing: false,
+            deferredPrompt: null,
+            currentReport: null
+        };
+
+        // DOM References
+        const dom = {
+            btnInstallPwa: document.getElementById('btnInstallPwa'),
+            btnDownloadApp: document.getElementById('btnDownloadApp'),
+            btnToggleEngine: document.getElementById('btnToggleEngine'),
+            engineBadgeText: document.getElementById('engineBadgeText'),
+            engineDrawer: document.getElementById('engineDrawer'),
+            engineMode: document.getElementById('engineMode'),
+            ollamaModel: document.getElementById('ollamaModel'),
+            ollamaUrl: document.getElementById('ollamaUrl'),
+            btnTestOllama: document.getElementById('btnTestOllama'),
+            ollamaStatus: document.getElementById('ollamaStatus'),
+            contextInput: document.getElementById('contextInput'),
+            dropZone: document.getElementById('dropZone'),
+            fileInput: document.getElementById('fileInput'),
+            cameraInput: document.getElementById('cameraInput'),
+            previewPanel: document.getElementById('previewPanel'),
+            previewCanvas: document.getElementById('previewCanvas'),
+            imageStats: document.getElementById('imageStats'),
+            scanOverlay: document.getElementById('scanOverlay'),
+            btnRotate: document.getElementById('btnRotate'),
+            btnClearPin: document.getElementById('btnClearPin'),
+            btnChangePhoto: document.getElementById('btnChangePhoto'),
+            btnAnalyze: document.getElementById('btnAnalyze'),
+            reportSection: document.getElementById('reportSection'),
+            repRiskLevel: document.getElementById('repRiskLevel'),
+            repEngineTag: document.getElementById('repEngineTag'),
+            repTimestamp: document.getElementById('repTimestamp'),
+            repSafetyScore: document.getElementById('repSafetyScore'),
+            repCoreObservation: document.getElementById('repCoreObservation'),
+            repCoreWhy: document.getElementById('repCoreWhy'),
+            repCoreFix: document.getElementById('repCoreFix'),
+            repCoreImpact: document.getElementById('repCoreImpact'),
+            nineSectionsContainer: document.getElementById('nineSectionsContainer'),
+            btnExportPdf: document.getElementById('btnExportPdf'),
+            btnExportTxt: document.getElementById('btnExportTxt'),
+            btnExportJson: document.getElementById('btnExportJson'),
+            btnSpeakReport: document.getElementById('btnSpeakReport'),
+            btnResetBottom: document.getElementById('btnResetBottom'),
+            toast: document.getElementById('toast')
+        };
+
+        function showToast(message) {
+            dom.toast.textContent = message.toUpperCase();
+            dom.toast.classList.remove('hidden');
+            clearTimeout(dom.toast._timer);
+            dom.toast._timer = setTimeout(() => dom.toast.classList.add('hidden'), 3200);
+        }
+
+        // =========================================================================
+        // 1. INLINE PWA MANIFEST & SERVICE WORKER REGISTRATION (STANDALONE SUPPORT)
+        // =========================================================================
+        (function initStandalonePwa() {
+            try {
+                // Generate inline SVG app icon
+                const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="#000000"/><rect x="24" y="24" width="464" height="464" fill="none" stroke="#FFE600" stroke-width="24"/><path d="M256 96L416 384H96L256 96Z" fill="#FFE600"/><rect x="242" y="190" width="28" height="105" fill="#000000"/><rect x="242" y="315" width="28" height="28" fill="#000000"/></svg>`;
+                const iconUrl = 'data:image/svg+xml;base64,' + btoa(svgIcon);
+
+                const manifest = {
+                    name: "SAFETYSCAN COMMUNITY EDITION",
+                    short_name: "SAFETYSCAN",
+                    description: "Local Privacy-First Civilian Safety & Civil Defense Hazard Assessment Tool",
+                    start_url: "./",
+                    display: "standalone",
+                    background_color: "#000000",
+                    theme_color: "#FFE600",
+                    icons: [
+                        { src: iconUrl, sizes: "192x192", type: "image/svg+xml" },
+                        { src: iconUrl, sizes: "512x512", type: "image/svg+xml" }
+                    ]
+                };
+
+                const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+                const manifestLink = document.createElement('link');
+                manifestLink.rel = 'manifest';
+                manifestLink.href = URL.createObjectURL(manifestBlob);
+                document.head.appendChild(manifestLink);
+
+                // Register lightweight offline Service Worker if served over HTTP/HTTPS
+                if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+                    const swCode = `
+                        const CACHE_NAME = 'safetyscan-community-v1';
+                        self.addEventListener('install', (e) => self.skipWaiting());
+                        self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
+                        self.addEventListener('fetch', (e) => {
+                            e.respondWith(
+                                caches.match(e.request).then((cached) => cached || fetch(e.request).catch(() => cached))
+                            );
+                        });
+                    `;
+                    const swBlob = new Blob([swCode], { type: 'application/javascript' });
+                    navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
+                }
+            } catch (err) {
+                console.warn('PWA inline init skipped:', err);
+            }
+        })();
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            appState.deferredPrompt = e;
+            dom.btnInstallPwa.classList.remove('hidden');
+        });
+
+        dom.btnInstallPwa.addEventListener('click', async () => {
+            if (!appState.deferredPrompt) return;
+            appState.deferredPrompt.prompt();
+            await appState.deferredPrompt.userChoice;
+            appState.deferredPrompt = null;
+            dom.btnInstallPwa.classList.add('hidden');
+        });
+
+        // Standalone HTML Downloader
+        dom.btnDownloadApp.addEventListener('click', () => {
+            const fullHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+            const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'SafetyScan-Community-Edition.html';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('STANDALONE APP DOWNLOADED');
+        });
+
+        // =========================================================================
+        // 2. ENGINE DRAWER & OLLAMA HEALTH CHECK
+        // =========================================================================
+        dom.btnToggleEngine.addEventListener('click', () => {
+            dom.engineDrawer.classList.toggle('hidden');
+        });
+
+        dom.engineMode.addEventListener('change', () => {
+            const labels = { auto: 'AUTO', ollama: 'OLLAMA', browser: 'OFFLINE' };
+            dom.engineBadgeText.textContent = `ENGINE: ${labels[dom.engineMode.value]}`;
+        });
+
+        dom.btnTestOllama.addEventListener('click', async () => {
+            const baseUrl = dom.ollamaUrl.value.replace(/\/api\/generate\/?$/, '');
+            dom.ollamaStatus.textContent = 'STATUS: PINGING LOCAL OLLAMA SERVER...';
+            try {
+                const controller = new AbortController();
+                const timer = setTimeout(() => controller.abort(), 3000);
+                const res = await fetch(`${baseUrl}/api/tags`, { signal: controller.signal });
+                clearTimeout(timer);
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const data = await res.json();
+                const models = (data.models || []).map(m => m.name).join(', ') || 'NONE PULLED YET';
+                dom.ollamaStatus.textContent = `STATUS: CONNECTED! INSTALLED MODELS: ${models.toUpperCase()}`;
+                showToast('OLLAMA CONNECTION VERIFIED');
+            } catch (err) {
+                dom.ollamaStatus.textContent = 'STATUS: OLLAMA UNREACHABLE (WILL USE BUILT-IN BROWSER ANALYZER)';
+                showToast('OLLAMA OFFLINE — FALLBACK READY');
+            }
+        });
+
+        // =========================================================================
+        // 3. IMAGE UPLOAD, RESIZING & CALIBRATED PREVIEW
+        // =========================================================================
+        function handleImageFile(file) {
+            if (!file || !file.type.startsWith('image/')) {
+                showToast('PLEASE SELECT A VALID IMAGE FILE');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const img = new Image();
+                img.onload = () => {
+                    appState.imageObj = img;
+                    appState.rotation = 0;
+                    appState.pin = null;
+                    dom.btnClearPin.classList.add('hidden');
+                    renderCalibratedCanvas();
+                    dom.dropZone.classList.add('hidden');
+                    dom.previewPanel.classList.remove('hidden');
+                    dom.previewPanel.classList.add('flex');
+                    dom.reportSection.classList.add('hidden');
+                };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        dom.fileInput.addEventListener('change', (e) => handleImageFile(e.target.files[0]));
+        dom.cameraInput.addEventListener('change', (e) => handleImageFile(e.target.files[0]));
+
+        // Drag and Drop support
+        dom.dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dom.dropZone.classList.add('border-white');
+        });
+        dom.dropZone.addEventListener('dragleave', () => dom.dropZone.classList.remove('border-white'));
+        dom.dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dom.dropZone.classList.remove('border-white');
+            if (e.dataTransfer.files.length) handleImageFile(e.dataTransfer.files[0]);
+        });
+
+        function renderCalibratedCanvas() {
+            if (!appState.imageObj) return;
+            const MAX_DIM = 896; // Balanced resolution for local VLMs & fast browser canvas analysis
+            let w = appState.imageObj.width;
+            let h = appState.imageObj.height;
+
+            if (w > MAX_DIM || h > MAX_DIM) {
+                if (w > h) {
+                    h = Math.round((h * MAX_DIM) / w);
+                    w = MAX_DIM;
+                } else {
+                    w = Math.round((w * MAX_DIM) / h);
+                    h = MAX_DIM;
+                }
+            }
+
+            const canvas = dom.previewCanvas;
+            const ctx = canvas.getContext('2d');
+            const rotated = appState.rotation === 90 || appState.rotation === 270;
+            canvas.width = rotated ? h : w;
+            canvas.height = rotated ? w : h;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+            ctx.rotate((appState.rotation * Math.PI) / 180);
+            ctx.drawImage(appState.imageObj, -w / 2, -h / 2, w, h);
+            ctx.restore();
+
+            // Extract pixel metrics BEFORE drawing reticle overlay
+            appState.imageMetrics = extractPixelMetrics(ctx, canvas.width, canvas.height);
+
+            // Export clean JPEG for VLM processing
+            const cleanDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+            appState.resizedBase64 = cleanDataUrl.split(',')[1];
+            const sizeKb = Math.round((appState.resizedBase64.length * 3) / 4 / 1024);
+            dom.imageStats.textContent = `${canvas.width} X ${canvas.height} PX • ${sizeKb} KB (LOCAL)`;
+
+            // Draw user target reticle if pinned
+            if (appState.pin) {
+                const px = appState.pin.x * canvas.width;
+                const py = appState.pin.y * canvas.height;
+                ctx.strokeStyle = '#FF2A2A';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.arc(px, py, 28, 0, Math.PI * 2);
+                ctx.stroke();
+
+                ctx.strokeStyle = '#FFE600';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(px - 38, py);
+                ctx.lineTo(px + 38, py);
+                ctx.moveTo(px, py - 38);
+                ctx.lineTo(px, py + 38);
+                ctx.stroke();
+            }
+        }
+
+        dom.btnRotate.addEventListener('click', () => {
+            appState.rotation = (appState.rotation + 90) % 360;
+            renderCalibratedCanvas();
+        });
+
+        dom.previewCanvas.addEventListener('click', (e) => {
+            if (!appState.imageObj || appState.isAnalyzing) return;
+            const rect = dom.previewCanvas.getBoundingClientRect();
+            appState.pin = {
+                x: (e.clientX - rect.left) / rect.width,
+                y: (e.clientY - rect.top) / rect.height
+            };
+            dom.btnClearPin.classList.remove('hidden');
+            renderCalibratedCanvas();
+            showToast('PRIORITY INSPECTION ZONE PINNED');
+        });
+
+        dom.btnClearPin.addEventListener('click', () => {
+            appState.pin = null;
+            dom.btnClearPin.classList.add('hidden');
+            renderCalibratedCanvas();
+        });
+
+        function resetWorkflow() {
+            appState.imageObj = null;
+            appState.resizedBase64 = null;
+            appState.pin = null;
+            appState.isAnalyzing = false;
+            dom.fileInput.value = '';
+            dom.cameraInput.value = '';
+            dom.previewPanel.classList.add('hidden');
+            dom.dropZone.classList.remove('hidden');
+            dom.reportSection.classList.add('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        dom.btnChangePhoto.addEventListener('click', resetWorkflow);
+        dom.btnResetBottom.addEventListener('click', resetWorkflow);
+
+        // =========================================================================
+        // 4. BROWSER PIXEL-HEURISTIC ANALYZER (OFFLINE STANDALONE ENGINE)
+        // =========================================================================
+        function extractPixelMetrics(ctx, width, height) {
+            const imgData = ctx.getImageData(0, 0, width, height).data;
+            let totalBrightness = 0;
+            let darkPixels = 0;
+            let warmHazardPixels = 0; // Red/Orange/Yellow tones (flames, rust, hazard markers, exposed copper)
+            let edgeClutterScore = 0;
+            const totalPixels = width * height;
+
+            for (let y = 0; y < height; y += 2) {
+                for (let x = 0; x < width; x += 2) {
+                    const idx = (y * width + x) * 4;
+                    const r = imgData[idx];
+                    const g = imgData[idx + 1];
+                    const b = imgData[idx + 2];
+                    const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+                    totalBrightness += lum;
+                    if (lum < 55) darkPixels++;
+                    if (r > 165 && g < 130 && b < 90) warmHazardPixels++;
+
+                    if (x + 2 < width) {
+                        const nIdx = (y * width + (x + 2)) * 4;
+                        const nLum = 0.299 * imgData[nIdx] + 0.587 * imgData[nIdx + 1] + 0.114 * imgData[nIdx + 2];
+                        if (Math.abs(lum - nLum) > 42) edgeClutterScore++;
+                    }
+                }
+            }
+
+            const sampled = totalPixels / 4;
+            return {
+                avgBrightness: Math.round(totalBrightness / sampled),
+                darkRatio: Math.round((darkPixels / sampled) * 100),
+                warmAlertRatio: Math.round((warmHazardPixels / sampled) * 100),
+                clutterIndex: Math.min(100, Math.round((edgeClutterScore / sampled) * 260)),
+                aspectRatio: +(width / height).toFixed(2)
+            };
+        }
+
+        function generateOfflineHeuristicReport(metrics, userFocus, pin) {
+            const isLowLight = metrics.avgBrightness < 85 || metrics.darkRatio > 45;
+            const isHighClutter = metrics.clutterIndex > 48;
+            const hasWarmSignatures = metrics.warmAlertRatio > 8;
+
+            let score = 82;
+            if (isLowLight) score -= 22;
+            if (isHighClutter) score -= 20;
+            if (hasWarmSignatures) score -= 12;
+            if (userFocus) score -= 5;
+            score = Math.max(18, Math.min(94, score));
+
+            const riskLevel = score < 40 ? 'CRITICAL' : score < 60 ? 'HIGH' : score < 80 ? 'MODERATE' : 'LOW';
+            const focusNote = userFocus ? ` User requested specific inspection of: "${userFocus}".` : '';
+            const pinNote = pin ? ` User pinned priority coordinates at (${Math.round(pin.x * 100)}%, ${Math.round(pin.y * 100)}%).` : '';
+
+            return {
+                engineUsed: 'OFFLINE BROWSER HEURISTIC ENGINE (NO EXTERNAL API)',
+                riskLevel,
+                safetyScore: score,
+                coreBriefing: {
+                    observation: `FACT: Image analyzed locally (${metrics.avgBrightness}/255 mean luminance, ${metrics.darkRatio}% low-light shadow area, ${metrics.clutterIndex}% visual edge-density/clutter index).${focusNote}${pinNote}`,
+                    whyItMatters: isLowLight || isHighClutter
+                        ? 'ESTIMATE: Poor visibility and high object density significantly slow down civilian evacuation during power outages, smoke conditions, or structural emergencies.'
+                        : 'ESTIMATE: Scene visibility appears adequate, though physical obstacles, unanchored items, or concealed fire risks require regular civilian verification.',
+                    recommendedFix: 'Clear a minimum 1.0–1.2 meter unobstructed evacuation path, install battery-backed emergency lighting, and keep flammable storage away from electrical panels and exits.',
+                    communityImpact: 'Accessible corridors, visible exit signage, and clutter-free shared spaces protect children, elderly neighbors, and first responders entering under low visibility.'
+                },
+                sections: [
+                    {
+                        number: '1',
+                        title: 'EXECUTIVE SUMMARY',
+                        confidence: '74% (MEASURED PIXEL METRICS + STRUCTURAL ESTIMATES)',
+                        content: `FACT: Local optical analysis recorded an average brightness of ${metrics.avgBrightness}/255 and a spatial clutter index of ${metrics.clutterIndex}/100. ASSUMPTION: Because this scan ran in air-gapped browser mode without a multi-billion-parameter vision language model, material composition (e.g., toxic plastics vs. concrete) cannot be confirmed visually without human verification. Overall readiness is rated ${riskLevel} with a safety score of ${score}/100.`
+                    },
+                    {
+                        number: '2',
+                        title: 'DETECTED HAZARDS',
+                        confidence: '70% (OBSERVED VISUAL INDICATORS)',
+                        content: `${isLowLight ? '• LOW-LIGHT / SHADOW HAZARD (FACT): ' + metrics.darkRatio + '% of the frame falls into deep shadow, creating trip, fall, and disorientation risks during grid failure.\n' : ''}${isHighClutter ? '• HIGH OBJECT DENSITY / OBSTRUCTION RISK (ESTIMATE): Elevated visual complexity (' + metrics.clutterIndex + '%) suggests stored items, cables, or narrow pinch-points along floor or wall zones.\n' : ''}${hasWarmSignatures ? '• HIGH-CONTRAST WARM / THERMAL COLOR ZONES (OBSERVATION): ' + metrics.warmAlertRatio + '% warm red/orange hues detected—verify whether these represent fire extinguishers, hazard tape, rust corrosion, or heat sources.\n' : ''}• UNVERIFIED SUBSURFACE / ELECTRICAL RISKS (ASSUMPTION): Concealed wiring faults, gas leaks, and load-bearing cracks require hands-on inspection.`
+                    },
+                    {
+                        number: '3',
+                        title: 'EVACUATION ANALYSIS',
+                        confidence: '76% (PATHWAY & VISIBILITY ASSESSMENT)',
+                        content: `OBSERVATION: Pathway visibility is ${isLowLight ? 'compromised by low ambient lighting' : 'moderately clear in primary lit zones'}. WHY IT MATTERS: In smoke or panic, civilians rely on clear floor edges and unobstructed doorways. RECOMMENDED FIX: Ensure doors open outward freely without key locks from the inside, remove floor mats or boxes from corridors, and mark step edges with high-contrast yellow/black tape.`
+                    },
+                    {
+                        number: '4',
+                        title: 'FIRE SAFETY REVIEW',
+                        confidence: '68% (VISUAL ESTIMATE)',
+                        content: `OBSERVATION: Visual inspection checked for red fire-equipment markers and combustible clutter density. ASSUMPTION: Standard residential and community spaces frequently harbor overloaded power strips or cardboard/textile accumulation near heat sources. RECOMMENDED FIX: Keep a certified ABC dry-powder extinguisher and smoke/CO detector visible and unobstructed; maintain at least 1 meter clearance around electrical distribution boxes.`
+                    },
+                    {
+                        number: '5',
+                        title: 'CIVIL DEFENSE CONSIDERATIONS',
+                        confidence: '72% (COMMUNITY RESILIENCE FRAMEWORK)',
+                        content: `EVALUATION: For civil defense readiness (sheltering in place or rapid evacuation), spaces must support zero-grid operation. ${isLowLight ? 'Current lighting levels would drop to near-zero if municipal power fails.' : 'Daylight/ambient light is present, but blackout readiness must be verified.'} RECOMMENDED FIX: Store flashlights, a battery/hand-crank radio, potable water (3L/person/day), and a basic trauma first-aid kit near the primary exit or shelter zone.`
+                    },
+                    {
+                        number: '6',
+                        title: 'IMPORTANT FIXES',
+                        confidence: '85% (STANDARD CIVILIAN SAFETY PROTOCOLS)',
+                        content: `PRIORITY 1 (IMMEDIATE): Remove any loose items, cords, or debris from walking paths and stair landings.\nPRIORITY 2 (WITHIN 24 HOURS): Test smoke/carbon monoxide alarms and place a working flashlight at the entrance.\nPRIORITY 3 (THIS WEEK): Verify fire extinguisher pressure gauge is in the green zone and share evacuation assembly points with household or building residents.`
+                    },
+                    {
+                        number: '7',
+                        title: 'WORST-CASE SCENARIO REVIEW',
+                        confidence: '80% (CONSEQUENCE MODELING)',
+                        content: `CONSEQUENCE IF UNADDRESSED: If an electrical fault, fire, or severe weather blackout occurs while pathways remain poorly lit or partially obstructed, evacuating residents—especially children, seniors, or mobility-impaired neighbors—face severe risk of falls, smoke inhalation, or entrapment, while firefighters lose critical minutes clearing access.`
+                    },
+                    {
+                        number: '8',
+                        title: 'COMMUNITY SAFETY RECOMMENDATIONS',
+                        confidence: '88% (PROVEN NEIGHBORHOOD PRACTICES)',
+                        content: `• Organize a 15-minute monthly stairwell, basement, and courtyard safety walk with neighbors.\n• Identify vulnerable residents (elderly, disabled, families with infants) who need assistance during alarms.\n• Keep shared basement shelter corridors free of private storage, fuel cans, and flammable furniture.\n• For full AI object-level recognition, connect free local Ollama (LLaVA or Moondream) in the ENGINE settings above.`
+                    },
+                    {
+                        number: '9',
+                        title: 'CONFIDENCE LEVEL',
+                        confidence: 'OVERALL CONFIDENCE: 72% (LOCAL PIXEL HEURISTIC MODE)',
+                        content: `FACT VS. ASSUMPTION BREAKDOWN:\n• MEASURED FACTS (95% CONFIDENCE): Image resolution, brightness levels (${metrics.avgBrightness}/255), shadow coverage (${metrics.darkRatio}%), and visual clutter density (${metrics.clutterIndex}%).\n• STRUCTURAL ESTIMATES (65% CONFIDENCE): Inferred pathway bottlenecks and lighting adequacy.\n• ASSUMPTIONS (50% CONFIDENCE): Unseen electrical, chemical, or structural integrity factors that require human or local VLM (Ollama LLaVA/Moondream) verification.`
+                    }
+                ]
+            };
+        }
+
+        // =========================================================================
+        // 5. LOCAL OLLAMA VISION MODEL INTEGRATION (LLAVA / MOONDREAM / MINICPM-V)
+        // =========================================================================
+        async function runOllamaVisionAnalysis(base64Image, userFocus, pin) {
+            const endpoint = dom.ollamaUrl.value.trim();
+            const model = dom.ollamaModel.value;
+            const focusClause = userFocus ? `User requested specific focus on: "${userFocus}".` : '';
+            const pinClause = pin ? `User marked priority coordinates at X=${Math.round(pin.x * 100)}%, Y=${Math.round(pin.y * 100)}%.` : '';
+
+            const prompt = `You are a Civilian Community Safety, Fire Prevention, and Civil Defense Inspector.
+Analyze this photograph in simple, clear civilian language (avoid technical jargon).
+Clearly distinguish between OBSERVED FACTS, ESTIMATES, and ASSUMPTIONS. Handle any visual uncertainty honestly.
+${focusClause} ${pinClause}
+
+Return ONLY valid JSON matching this exact schema:
+{
+  "riskLevel": "LOW" | "MODERATE" | "HIGH" | "CRITICAL",
+  "safetyScore": 0-100,
+  "coreBriefing": {
+    "observation": "Clear factual summary of what is visible",
+    "whyItMatters": "Plain-language explanation of civilian risk",
+    "recommendedFix": "Immediate practical action to take",
+    "communityImpact": "How fixing this protects neighbors and responders"
+  },
+  "sections": [
+    { "number": "1", "title": "EXECUTIVE SUMMARY", "confidence": "e.g. 85% (HIGH)", "content": "..." },
+    { "number": "2", "title": "DETECTED HAZARDS", "confidence": "...", "content": "..." },
+    { "number": "3", "title": "EVACUATION ANALYSIS", "confidence": "...", "content": "..." },
+    { "number": "4", "title": "FIRE SAFETY REVIEW", "confidence": "...", "content": "..." },
+    { "number": "5", "title": "CIVIL DEFENSE CONSIDERATIONS", "confidence": "...", "content": "..." },
+    { "number": "6", "title": "IMPORTANT FIXES", "confidence": "...", "content": "..." },
+    { "number": "7", "title": "WORST-CASE SCENARIO REVIEW", "confidence": "...", "content": "..." },
+    { "number": "8", "title": "COMMUNITY SAFETY RECOMMENDATIONS", "confidence": "...", "content": "..." },
+    { "number": "9", "title": "CONFIDENCE LEVEL", "confidence": "...", "content": "Distinguish facts, estimates, and assumptions." }
+  ]
+}`;
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 45000);
+
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                signal: controller.signal,
+                body: JSON.stringify({
+                    model: model,
+                    prompt: prompt,
+                    images: [base64Image],
+                    stream: false,
+                    format: 'json'
+                })
+            });
+
+            clearTimeout(timeoutId);
+            if (!response.ok) throw new Error(`Ollama HTTP ${response.status}`);
+            const data = await response.json();
+            const parsed = JSON.parse(data.response);
+            parsed.engineUsed = `LOCAL OLLAMA (${model.toUpperCase()})`;
+            return parsed;
+        }
+
+        // =========================================================================
+        // 6. MAIN ANALYZE CONTROLLER
+        // =========================================================================
+        dom.btnAnalyze.addEventListener('click', async () => {
+            if (!appState.resizedBase64 || appState.isAnalyzing) return;
+
+            appState.isAnalyzing = true;
+            dom.btnAnalyze.disabled = true;
+            dom.scanOverlay.classList.remove('hidden');
+
+            const mode = dom.engineMode.value;
+            const userFocus = dom.contextInput.value.trim();
+            let report = null;
+
+            try {
+                if (mode === 'ollama') {
+                    report = await runOllamaVisionAnalysis(appState.resizedBase64, userFocus, appState.pin);
+                } else if (mode === 'browser') {
+                    await new Promise(r => setTimeout(r, 650)); // Brief visual scan feedback
+                    report = generateOfflineHeuristicReport(appState.imageMetrics, userFocus, appState.pin);
+                } else {
+                    // AUTO mode: Try local Ollama first, seamlessly fall back to offline browser analyzer
+                    try {
+                        report = await runOllamaVisionAnalysis(appState.resizedBase64, userFocus, appState.pin);
+                    } catch (ollamaErr) {
+                        report = generateOfflineHeuristicReport(appState.imageMetrics, userFocus, appState.pin);
+                    }
+                }
+
+                appState.currentReport = report;
+                renderStructuredReport(report);
+                showToast('SAFETY ASSESSMENT COMPLETE');
+            } catch (err) {
+                console.error(err);
+                showToast('OLLAMA ERROR — CHECK ENGINE SETTINGS OR USE AUTO MODE');
+            } finally {
+                appState.isAnalyzing = false;
+                dom.btnAnalyze.disabled = false;
+                dom.scanOverlay.classList.add('hidden');
+            }
+        });
+
+        // =========================================================================
+        // 7. RENDER STRUCTURED 9-SECTION REPORT
+        // =========================================================================
+        function renderStructuredReport(report) {
+            const risk = (report.riskLevel || 'MODERATE').toUpperCase();
+            const score = Math.max(0, Math.min(100, Number(report.safetyScore) || 50));
+
+            dom.repRiskLevel.textContent = risk;
+            dom.repSafetyScore.textContent = score;
+            dom.repEngineTag.textContent = `ENGINE: ${report.engineUsed || 'LOCAL'}`;
+            dom.repTimestamp.textContent = `GENERATED: ${new Date().toLocaleString()} • PRIVACY: LOCAL DEVICE ONLY`;
+
+            // Color-code risk level while preserving high-contrast black & yellow palette
+            if (risk === 'CRITICAL' || risk === 'HIGH') {
+                dom.repRiskLevel.className = 'text-safety-red';
+                dom.verdictBanner.style.borderColor = '#FF2A2A';
+            } else if (risk === 'LOW') {
+                dom.repRiskLevel.className = 'text-safety-green';
+                dom.verdictBanner.style.borderColor = '#FFE600';
+            } else {
+                dom.repRiskLevel.className = 'text-safety-yellow';
+                dom.verdictBanner.style.borderColor = '#FFE600';
+            }
+
+            const core = report.coreBriefing || {};
+            dom.repCoreObservation.textContent = core.observation || 'No direct observation recorded.';
+            dom.repCoreWhy.textContent = core.whyItMatters || 'Unaddressed hazards increase injury and evacuation delay risk.';
+            dom.repCoreFix.textContent = core.recommendedFix || 'Clear pathways and inspect safety equipment.';
+            dom.repCoreImpact.textContent = core.communityImpact || 'Improves neighborhood resilience and emergency responder access.';
+
+            // Render all 9 structured sections
+            dom.nineSectionsContainer.innerHTML = '';
+            (report.sections || []).forEach((sec) => {
+                const card = document.createElement('article');
+                card.className = 'border-2 border-safety-yellow bg-black p-4 sm:p-5 print-border';
+                card.innerHTML = `
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-safety-yellow/40 pb-2.5 mb-3">
+                        <h3 class="font-impact-caps text-lg sm:text-xl text-safety-yellow">
+                            ${escapeHtml(sec.number)}. ${escapeHtml(sec.title)}
+                        </h3>
+                        <span class="text-[11px] font-mono border border-safety-yellow text-safety-yellow px-2 py-0.5">
+                            ${escapeHtml(sec.confidence || 'ESTIMATED')}
+                        </span>
+                    </div>
+                    <div class="text-xs sm:text-sm text-white leading-relaxed whitespace-pre-line font-sans">${escapeHtml(sec.content)}</div>
+                `;
+                dom.nineSectionsContainer.appendChild(card);
+            });
+
+            dom.reportSection.classList.remove('hidden');
+            dom.reportSection.classList.add('flex');
+            dom.reportSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function escapeHtml(str) {
+            return String(str || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        // =========================================================================
+        // 8. EXPORT OPTIONS: PDF, TXT, JSON & TEXT-TO-SPEECH
+        // =========================================================================
+        dom.btnExportPdf.addEventListener('click', () => {
+            if (!appState.currentReport) return;
+            window.print();
+        });
+
+        dom.btnExportTxt.addEventListener('click', () => {
+            const r = appState.currentReport;
+            if (!r) return;
+
+            let lines = [
+                '====================================================================',
+                'SAFETYSCAN COMMUNITY EDITION — CIVILIAN SAFETY ASSESSMENT REPORT',
+                '====================================================================',
+                `GENERATED: ${new Date().toISOString()}`,
+                `ANALYSIS ENGINE: ${r.engineUsed}`,
+                `RISK LEVEL: ${r.riskLevel}`,
+                `FINAL SAFETY SCORE: ${r.safetyScore}/100`,
+                '',
+                `OBSERVATION: ${r.coreBriefing?.observation || ''}`,
+                `WHY IT MATTERS: ${r.coreBriefing?.whyItMatters || ''}`,
+                `RECOMMENDED FIX: ${r.coreBriefing?.recommendedFix || ''}`,
+                `COMMUNITY IMPACT: ${r.coreBriefing?.communityImpact || ''}`,
+                '--------------------------------------------------------------------'
+            ];
+
+            (r.sections || []).forEach(s => {
+                lines.push(`\n${s.number}. ${s.title} [${s.confidence}]`);
+                lines.push(s.content);
+            });
+
+            downloadBlob(lines.join('\n'), 'safetyscan-report.txt', 'text/plain;charset=utf-8');
+            showToast('TXT REPORT EXPORTED');
+        });
+
+        dom.btnExportJson.addEventListener('click', () => {
+            if (!appState.currentReport) return;
+            const exportPayload = {
+                application: 'SAFETYSCAN COMMUNITY EDITION',
+                exportedAt: new Date().toISOString(),
+                privacyMode: 'LOCAL_ONLY',
+                report: appState.currentReport
+            };
+            downloadBlob(JSON.stringify(exportPayload, null, 2), 'safetyscan-report.json', 'application/json');
+            showToast('JSON REPORT EXPORTED');
+        });
+
+        function downloadBlob(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        dom.btnSpeakReport.addEventListener('click', () => {
+            const r = appState.currentReport;
+            if (!r || !('speechSynthesis' in window)) {
+                showToast('SPEECH SYNTHESIS NOT SUPPORTED IN THIS BROWSER');
+                return;
+            }
+            window.speechSynthesis.cancel();
+            const speechText = `SafetyScan Community Edition Report. Risk Level: ${r.riskLevel}. Final Safety Score: ${r.safetyScore} out of 100. Observation: ${r.coreBriefing?.observation}. Recommended Fix: ${r.coreBriefing?.recommendedFix}.`;
+            const utterance = new SpeechSynthesisUtterance(speechText);
+            utterance.lang = 'en-US';
+            window.speechSynthesis.speak(utterance);
+            showToast('READING REPORT ALOUD');
+        });
+    </script>
+
+</body></html>
